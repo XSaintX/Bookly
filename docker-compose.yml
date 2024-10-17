@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  bookly.api:
+    image: ${DOCKER_REGISTRY-}booklyapi
+    container_name: Bookly.API
+    build:
+      context: .
+      dockerfile: Bookly.API/Dockerfile
+    depends_on:
+      - bookly-db
+
+  bookly-db:
+    image: postgres:latest
+    container_name: Bookly.DB
+    environment:
+        - POSTGRES_DB=bookify
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=thebest1
+    volumes:
+        - ./.containers/database:/var/lib/postgresql/data
+    ports:
+        - 5432:5432
