@@ -31,6 +31,10 @@ namespace Bookly.Domain.Bookings
             Status = status;
             CreatedOnUtc = createdOnUtc;
         }
+        private Booking()
+        {
+
+        }
         public Guid ApartmentId { get; private set; }
         public Guid UserId { get; private set; }
         public DateRange Duration { get; private set; }
@@ -38,7 +42,7 @@ namespace Bookly.Domain.Bookings
         public Money CleaningFee { get; private set; }
         public Money AmenitiesUpCharge { get; private set; }
         public Money TotalPrice { get; }
-        public Money TotalPrince { get; private set; }
+        //public Money TotalPrince { get; private set; }
         public BookingStatus Status { get; private set; }
         public DateTime CreatedOnUtc { get; private set; }
         public DateTime? ConfirmedOnUtc { get; private set; }
