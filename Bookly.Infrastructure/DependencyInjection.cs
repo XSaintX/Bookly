@@ -13,6 +13,9 @@ using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Bookly.Infrastructure.Authentication;
+using Bookify.Infrastructure.Authentication;
 
 namespace Bookly.Infrastructure
 {
@@ -22,8 +25,22 @@ namespace Bookly.Infrastructure
         {
             services.AddTransient<IDateTimeProvider, DateTimeProvider>();
             services.AddTransient<IEmailService, EmailService>();
-            var connectionString= configuration.GetConnectionString("Database")??
-                throw new ArgumentNullException(nameof(configuration));
+            AddPersistence(services, configuration);
+            services
+                .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer();
+
+            services.Configure<AuthenticationOptions>(configuration.GetSection("Authentication"));
+
+            services.ConfigureOptions<JwtBearerOptionsSetup>();
+            services.Configure<KeycloakOptions>(configuration.GetSection("Keycloak"));
+            return services;
+        }
+
+        private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
+        {
+            var connectionString = configuration.GetConnectionString("Database") ??
+                            throw new ArgumentNullException(nameof(configuration));
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
@@ -37,8 +54,6 @@ namespace Bookly.Infrastructure
     new SqlConnectionFactory(connectionString));
 
             SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
-
-            return services;
         }
     }
 }
