@@ -1,21 +1,23 @@
-﻿using Bookly.Application.Abstractions.Clock;
+﻿using Bookify.Infrastructure.Authentication;
+using Bookly.Application.Abstractions.Authentication;
+using Bookly.Application.Abstractions.Clock;
 using Bookly.Application.Abstractions.Data;
 using Bookly.Application.Abstractions.Email;
 using Bookly.Domain.Abstractions;
 using Bookly.Domain.Apartments;
 using Bookly.Domain.Bookings;
 using Bookly.Domain.Users;
+using Bookly.Infrastructure.Authentication;
 using Bookly.Infrastructure.Clock;
 using Bookly.Infrastructure.Data;
 using Bookly.Infrastructure.Email;
 using Bookly.Infrastructure.Repositories;
 using Dapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Bookly.Infrastructure.Authentication;
-using Bookify.Infrastructure.Authentication;
+using Microsoft.Extensions.Options;
 
 namespace Bookly.Infrastructure
 {
@@ -34,6 +36,14 @@ namespace Bookly.Infrastructure
 
             services.ConfigureOptions<JwtBearerOptionsSetup>();
             services.Configure<KeycloakOptions>(configuration.GetSection("Keycloak"));
+            services.AddHttpClient<IAuthenticationService, AuthenticationService>((serviceProvider, httpClient) =>
+            {
+                var keycloakOptions = serviceProvider.GetRequiredService<IOptions<KeycloakOptions>>().Value;
+
+                httpClient.BaseAddress = new Uri(keycloakOptions.AdminUrl);
+            })
+    .AddHttpMessageHandler<AdminAuthorizationDelegatingHandler>();
+
             return services;
         }
 
