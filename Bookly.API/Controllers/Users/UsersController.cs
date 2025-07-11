@@ -1,12 +1,41 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Bookly.Application.Users.RegisterUser;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Bookly.API.Controllers.Users
 {
-    public class UsersController : Controller
+    [ApiController]
+    [Route("api/users")]
+    public class UsersController : ControllerBase
     {
-        public IActionResult Index()
+        private readonly ISender _sender;
+
+        public UsersController(ISender sender)
         {
-            return View();
+            _sender = sender;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(
+            RegisterUserRequest request,
+            CancellationToken cancellationToken)
+        {
+            var command = new RegisterUserCommand(
+                request.Email,
+                request.FirstName,
+                request.LastName,
+                request.Password);
+
+            var result = await _sender.Send(command, cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(result.Value);
         }
     }
 }
